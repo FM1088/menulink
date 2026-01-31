@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { UtensilsCrossed, Check, ArrowLeft } from 'lucide-react'
+import { UtensilsCrossed, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
