@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
+export const dynamic = 'force-dynamic'
+
+const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
@@ -18,8 +20,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
+  const supabase = getSupabase()
+
   switch (event.type) {
     case 'checkout.session.completed': {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const session = event.data.object as any
       const userId = session.metadata?.userId
       if (userId) {
@@ -34,6 +39,7 @@ export async function POST(req: NextRequest) {
       break
     }
     case 'customer.subscription.deleted': {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sub = event.data.object as any
       await supabase
         .from('profiles')

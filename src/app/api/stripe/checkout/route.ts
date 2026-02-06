@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
+export const dynamic = 'force-dynamic'
+
+const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
@@ -10,6 +12,7 @@ const supabase = createClient(
 export async function POST(req: NextRequest) {
   try {
     const { userId, email } = await req.json()
+    const supabase = getSupabase()
 
     // Get or create Stripe customer
     const { data: profile } = await supabase
@@ -42,6 +45,7 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({ url: session.url })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
