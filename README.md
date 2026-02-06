@@ -63,3 +63,41 @@ npm run dev
 
 - **Free**: 1 page, minimal template, all link types, QR code
 - **Pro** ($9/mo): Unlimited pages, all templates, analytics, custom domain
+
+---
+
+## 🔗 Role in Curateria Ecosystem
+
+**MenuLink is the Traffic Capture Layer.**
+
+```
+ECOSYSTEM POSITION: Tier 2 — Tools 🛠️
+```
+
+### What It Does
+- Bio link pages optimised for restaurants
+- QR code generation for table tents/menus
+- Click tracking and analytics
+- Links to menu, booking, delivery, socials
+
+### How It Connects
+```
+FoodiePost content → goes viral
+     ↓
+Bio link in profile → "link in bio"
+     ↓
+MenuLink page → captures traffic
+     ↓
+├── Menu link → Curateria listing
+├── Booking link → reservation
+├── Delivery link → order
+└── Analytics → track what works
+```
+
+### Value to Ecosystem
+1. **Traffic attribution** — Know which content drives visits
+2. **Physical presence** — QR codes at tables link back to Curateria
+3. **Conversion tracking** — See full funnel from post to visit
+4. **Partner retention** — Essential tool, free with Curateria
+
+See: `/home/ernando_atsuda/projects/ECOSYSTEM.md` for full strategy.
