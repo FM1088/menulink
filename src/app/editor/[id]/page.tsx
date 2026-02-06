@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   UtensilsCrossed, ArrowLeft, Save, Eye, QrCode, Share2,
   Plus, Trash2, GripVertical, Upload, Clock, Image as ImageIcon,
   Palette, ExternalLink, Phone, Mail, MapPin, CalendarCheck,
-  Truck, Link2, ChevronDown, ChevronUp, Globe
+  Truck, Link2, ChevronDown, ChevronUp, Globe, BarChart3, Download
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -22,7 +22,7 @@ import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import type { RestaurantPage, RestaurantLink, Template, ThemeConfig, BusinessHours } from '@/lib/types'
 import { DEFAULT_THEME, LINK_TYPE_CONFIG } from '@/lib/types'
 import toast from 'react-hot-toast'
-import QRCode from 'qrcode'
+import { QRCodeCanvas } from 'qrcode.react'
 
 const TEMPLATES: { id: Template; name: string; desc: string }[] = [
   { id: 'minimal', name: 'Minimal', desc: 'Clean, text-focused' },
@@ -57,9 +57,9 @@ export default function EditorPage() {
   const [page, setPage] = useState<RestaurantPage | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [qrDataUrl, setQrDataUrl] = useState('')
   const [showQr, setShowQr] = useState(false)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const qrRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -173,17 +173,17 @@ export default function EditorPage() {
     toast.success(`${type} uploaded!`)
   }
 
-  const generateQR = async () => {
-    if (!page) return
-    const url = `${window.location.origin}/${page.slug}`
-    const dataUrl = await QRCode.toDataURL(url, {
-      width: 512,
-      margin: 2,
-      color: { dark: '#000000', light: '#ffffff' },
-    })
-    setQrDataUrl(dataUrl)
-    setShowQr(true)
-  }
+  const downloadQR = useCallback(() => {
+    if (!qrRef.current || !page) return
+    const canvas = qrRef.current
+    const url = canvas.toDataURL('image/png')
+    const link = document.createElement('a')
+    link.download = `${page.slug}-qr.png`
+    link.href = url
+    link.click()
+  }, [page])
+
+  const getPageUrl = () => page ? `${window.location.origin}/${page.slug}` : ''
 
   if (loading || !page) {
     return (
@@ -213,10 +213,15 @@ export default function EditorPage() {
                 onCheckedChange={(published) => update({ published })}
               />
             </div>
-            <Button variant="ghost" size="sm" onClick={generateQR}>
+            <Link href={`/analytics/${page.id}`}>
+              <Button variant="ghost" size="sm" title="Analytics">
+                <BarChart3 className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Button variant="ghost" size="sm" onClick={() => setShowQr(true)} title="QR Code">
               <QrCode className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => window.open(`/${page.slug}`, '_blank')}>
+            <Button variant="ghost" size="sm" onClick={() => window.open(`/${page.slug}`, '_blank')} title="Preview">
               <Eye className="w-4 h-4" />
             </Button>
             <Button size="sm" onClick={save} disabled={saving} className="bg-orange-500 hover:bg-orange-600">
@@ -508,12 +513,12 @@ export default function EditorPage() {
                         <div className="flex items-center gap-2 mt-1.5">
                           <input
                             type="color"
-                            value={(page.theme as any)[key]}
+                            value={page.theme[key as keyof typeof page.theme]}
                             onChange={e => updateTheme({ [key]: e.target.value })}
                             className="w-9 h-9 rounded cursor-pointer border-0"
                           />
                           <Input
-                            value={(page.theme as any)[key]}
+                            value={page.theme[key as keyof typeof page.theme]}
                             onChange={e => updateTheme({ [key]: e.target.value })}
                             className="bg-white/5 border-white/10 h-9 text-sm"
                           />
@@ -543,32 +548,36 @@ export default function EditorPage() {
       </div>
 
       {/* QR Dialog */}
-      {showQr && (
-        <Dialog open={showQr} onOpenChange={setShowQr}>
-          <DialogContent className="bg-zinc-950 border-white/10 max-w-sm">
-            <DialogHeader>
-              <DialogTitle>QR Code</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col items-center gap-4">
-              {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="w-64 h-64 rounded-lg" />}
-              <p className="text-sm text-muted-foreground text-center">
-                Scan to visit: menulink.page/{page.slug}
-              </p>
-              <Button
-                onClick={() => {
-                  const link = document.createElement('a')
-                  link.download = `${page.slug}-qr.png`
-                  link.href = qrDataUrl
-                  link.click()
+      <Dialog open={showQr} onOpenChange={setShowQr}>
+        <DialogContent className="bg-zinc-950 border-white/10 max-w-sm">
+          <DialogHeader>
+            <DialogTitle>QR Code</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4">
+            <div className="bg-white p-4 rounded-xl">
+              <QRCodeCanvas
+                ref={qrRef}
+                value={getPageUrl()}
+                size={256}
+                level="H"
+                includeMargin
+                imageSettings={{
+                  src: page.logo_url || '',
+                  height: page.logo_url ? 40 : 0,
+                  width: page.logo_url ? 40 : 0,
+                  excavate: true,
                 }}
-                className="bg-orange-500 hover:bg-orange-600"
-              >
-                Download QR Code
-              </Button>
+              />
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+            <p className="text-sm text-muted-foreground text-center">
+              Scan to visit: {getPageUrl()}
+            </p>
+            <Button onClick={downloadQR} className="bg-orange-500 hover:bg-orange-600 w-full">
+              <Download className="w-4 h-4 mr-2" /> Download PNG
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

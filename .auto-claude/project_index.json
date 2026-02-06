@@ -1,0 +1,17 @@
+{
+  "project_root": "/home/ernando_atsuda/projects/menulink",
+  "project_type": "single",
+  "services": {
+    "app": {
+      "name": "menulink",
+      "path": "/home/ernando_atsuda/projects/menulink",
+      "language": "TypeScript",
+      "framework": "Next.js",
+      "type": "web",
+      "package_manager": "npm",
+      "port": "3000",
+      "dev_command": "npm run dev",
+      "test_command": "npm test"
+    }
+  }
+}

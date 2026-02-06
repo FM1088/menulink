@@ -4,12 +4,15 @@ import { createClient } from '@supabase/supabase-js'
 import { PublicPageClient } from './client'
 import type { RestaurantPage } from '@/lib/types'
 
-const supabase = createClient(
+export const dynamic = 'force-dynamic'
+
+const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 async function getPage(slug: string): Promise<RestaurantPage | null> {
+  const supabase = getSupabase()
   const { data } = await supabase
     .from('pages')
     .select('*')
@@ -45,11 +48,15 @@ export default async function SlugPage({ params }: { params: { slug: string } })
   const page = await getPage(params.slug)
   if (!page) notFound()
 
-  // Increment views
-  await supabase
-    .from('pages')
-    .update({ views: (page.views || 0) + 1 })
-    .eq('id', page.id)
+  // Record page view via the RPC function (which updates both analytics table and aggregate counter)
+  const supabase = getSupabase()
+  await supabase.rpc('record_analytics', {
+    p_page_id: page.id,
+    p_event_type: 'view',
+    p_link_id: null,
+    p_referrer: null,
+    p_user_agent: null
+  })
 
   return <PublicPageClient page={page} />
 }

@@ -24,10 +24,11 @@ function getLinkHref(link: RestaurantLink) {
   return link.url
 }
 
-function trackClick(pageId: string) {
+function trackClick(pageId: string, linkId?: string) {
   fetch('/api/analytics', {
     method: 'POST',
-    body: JSON.stringify({ pageId, type: 'click' }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pageId, type: 'click', linkId }),
   }).catch(() => {})
 }
 
@@ -68,7 +69,7 @@ function MinimalTemplate({ page }: { page: RestaurantPage }) {
                 href={getLinkHref(link)}
                 target={link.type !== 'phone' && link.type !== 'email' ? '_blank' : undefined}
                 rel="noopener noreferrer"
-                onClick={() => trackClick(page.id)}
+                onClick={() => trackClick(page.id, link.id)}
                 className="block rounded-xl py-3.5 px-5 font-medium text-center border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 style={{
                   borderColor: theme.primaryColor + '40',
@@ -169,7 +170,7 @@ function PhotoHeroTemplate({ page }: { page: RestaurantPage }) {
               href={getLinkHref(link)}
               target={link.type !== 'phone' && link.type !== 'email' ? '_blank' : undefined}
               rel="noopener noreferrer"
-              onClick={() => trackClick(page.id)}
+              onClick={() => trackClick(page.id, link.id)}
               className="block rounded-2xl py-4 px-5 font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               style={{
                 borderColor: theme.primaryColor + '30',
@@ -268,7 +269,7 @@ function ElegantTemplate({ page }: { page: RestaurantPage }) {
                 href={getLinkHref(link)}
                 target={link.type !== 'phone' && link.type !== 'email' ? '_blank' : undefined}
                 rel="noopener noreferrer"
-                onClick={() => trackClick(page.id)}
+                onClick={() => trackClick(page.id, link.id)}
                 className="block rounded-lg py-3.5 px-5 text-sm font-medium text-center bg-white border border-amber-200/50 hover:border-amber-400/50 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
               >
                 <div className="flex items-center justify-center gap-3">
