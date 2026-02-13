@@ -270,7 +270,7 @@ export default function LandingPage() {
             <a href="#">Terms</a>
             <a href="mailto:hello@menulink.page">Contact</a>
           </div>
-          <p className="text-xs text-muted-foreground">© 2024 MenuLink.page</p>
+          <p className="text-xs text-muted-foreground">© 2025 MenuLink.page</p>
         </div>
       </footer>
     </div>

@@ -1,52 +1,80 @@
-# MenuLink.page 🍽️
+# MenuLink.page
 
 Beautiful bio link pages for restaurants. Like Linktree, but built specifically for the food industry.
 
 ## Features
 
-- **3 Templates**: Minimal, Photo Hero, Elegant
+- **3 Templates**: Minimal, Photo Hero, Elegant -- each designed for different restaurant vibes
 - **8 Link Types**: Menu, Booking, Delivery, Social, Maps, Phone, Email, Custom
-- **Visual Editor**: Drag-and-drop links, color themes, image uploads
-- **QR Code Generator**: Print for table tents and menus
-- **Analytics**: Track views and clicks
-- **Mobile-First**: 90% of traffic is mobile — pages are optimized for it
-- **SEO**: OG images, meta tags, fast loading
+- **Visual Editor**: Live preview, color themes, image uploads, link reordering
+- **QR Code Generator**: Download PNG codes for table tents, menus, and receipts
+- **Analytics Dashboard**: Track page views, link clicks, CTR, and 7-day trends
+- **Mobile-First**: Responsive pages optimized for the 90%+ mobile traffic restaurants see
+- **SEO Ready**: Open Graph meta tags, Twitter cards, server-side rendering for public pages
+- **Stripe Billing**: Free tier + Pro subscription with Stripe Checkout and webhook handling
 
 ## Tech Stack
 
-- Next.js 14 (App Router) + TypeScript
-- Tailwind CSS + shadcn/ui
-- Supabase (Auth + PostgreSQL + Storage)
-- Stripe (Billing)
-- Zustand (State)
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 14 (App Router) + TypeScript |
+| UI | Tailwind CSS + shadcn/ui (Radix) |
+| Auth & DB | Supabase (Auth + PostgreSQL + Storage) |
+| Payments | Stripe (Checkout + Webhooks) |
+| State | Zustand |
+| Charts | Recharts |
+| QR Codes | qrcode.react |
+| Drag & Drop | @dnd-kit |
 
-## Setup
+## Quick Start
 
-1. Clone and install:
+### 1. Clone and install
+
 ```bash
+git clone https://github.com/FM1088/menulink.git
+cd menulink
 npm install
 ```
 
-2. Create a Supabase project and run `supabase/schema.sql` in the SQL editor
+### 2. Set up Supabase
 
-3. Create a storage bucket called `uploads` (public)
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor** and run the schema file:
+   - `supabase/schema.sql` (creates profiles, pages tables, RLS policies, triggers)
+   - `supabase/migrations/20260206_page_analytics.sql` (creates analytics table and RPC functions)
+3. Go to **Storage** and create a public bucket named `uploads`
+4. Copy your project URL and keys from **Settings > API**
 
-4. Copy `.env.local` and fill in your keys:
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_WEBHOOK_SECRET=
-STRIPE_PRO_PRICE_ID=
+### 3. Set up Stripe (optional, for billing)
+
+1. Create a Stripe account at [stripe.com](https://stripe.com)
+2. Create a Product with a recurring price ($9/month)
+3. Copy the Price ID and API keys
+4. Set up a webhook endpoint pointing to `/api/stripe/webhook`
+   - Events to listen for: `checkout.session.completed`, `customer.subscription.deleted`
+
+### 4. Configure environment variables
+
+Copy `.env.local` and fill in your values:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRO_PRICE_ID=price_...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-5. Run dev server:
+### 5. Run the dev server
+
 ```bash
 npm run dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000) to see the landing page.
 
 ## Pages
 
@@ -54,50 +82,74 @@ npm run dev
 |-------|-------------|
 | `/` | Landing page with hero, features, pricing |
 | `/auth` | Sign in / Sign up |
-| `/dashboard` | User's pages, analytics, create new |
-| `/editor/[id]` | Visual page editor |
+| `/dashboard` | Manage your restaurant pages |
+| `/editor/[id]` | Visual page editor with live preview |
+| `/analytics/[id]` | Analytics dashboard with charts |
 | `/pricing` | Plan comparison |
-| `/[slug]` | Public restaurant page (what visitors see) |
+| `/[slug]` | Public restaurant page (SSR, what visitors see) |
+
+## API Routes
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/analytics` | POST | Record page view or link click |
+| `/api/analytics` | GET | Fetch analytics summary by day |
+| `/api/stripe/checkout` | POST | Create Stripe checkout session |
+| `/api/stripe/webhook` | POST | Handle Stripe subscription events |
+
+## Database Schema
+
+```
+profiles
+  id (UUID, FK -> auth.users)
+  email, plan (free/pro)
+  stripe_customer_id, stripe_subscription_id
+
+pages
+  id (UUID), user_id (FK -> profiles)
+  slug (unique), name, description
+  logo_url, hero_url, template
+  theme (JSONB), links (JSONB), hours (JSONB), gallery (JSONB)
+  published, views, clicks
+
+page_analytics
+  id (UUID), page_id (FK -> pages)
+  event_type (view/click), link_id, referrer, user_agent
+```
 
 ## Pricing
 
-- **Free**: 1 page, minimal template, all link types, QR code
-- **Pro** ($9/mo): Unlimited pages, all templates, analytics, custom domain
+- **Free**: 1 page, Minimal template, all link types, QR code
+- **Pro** ($9/mo): Unlimited pages, all 3 templates, analytics, custom domain, priority support
 
----
-
-## 🔗 Role in Curateria Ecosystem
-
-**MenuLink is the Traffic Capture Layer.**
+## Project Structure
 
 ```
-ECOSYSTEM POSITION: Tier 2 — Tools 🛠️
+src/
+  app/
+    [slug]/          # Public restaurant pages (SSR)
+    analytics/[id]/  # Analytics dashboard
+    api/             # API routes (analytics, stripe)
+    auth/            # Sign in / Sign up
+    dashboard/       # User's pages
+    editor/[id]/     # Visual page editor
+    pricing/         # Pricing page
+    layout.tsx       # Root layout
+    page.tsx         # Landing page
+  components/
+    ui/              # shadcn/ui components
+  lib/
+    supabase.ts      # Server-side Supabase client
+    supabase-browser.ts  # Client-side Supabase client
+    stripe.ts        # Stripe config
+    store.ts         # Zustand state
+    types.ts         # TypeScript types
+    utils.ts         # Tailwind merge utility
+supabase/
+  schema.sql         # Database schema
+  migrations/        # SQL migrations
 ```
 
-### What It Does
-- Bio link pages optimised for restaurants
-- QR code generation for table tents/menus
-- Click tracking and analytics
-- Links to menu, booking, delivery, socials
+## License
 
-### How It Connects
-```
-FoodiePost content → goes viral
-     ↓
-Bio link in profile → "link in bio"
-     ↓
-MenuLink page → captures traffic
-     ↓
-├── Menu link → Curateria listing
-├── Booking link → reservation
-├── Delivery link → order
-└── Analytics → track what works
-```
-
-### Value to Ecosystem
-1. **Traffic attribution** — Know which content drives visits
-2. **Physical presence** — QR codes at tables link back to Curateria
-3. **Conversion tracking** — See full funnel from post to visit
-4. **Partner retention** — Essential tool, free with Curateria
-
-See: `/home/ernando_atsuda/projects/ECOSYSTEM.md` for full strategy.
+MIT
