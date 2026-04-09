@@ -22,6 +22,8 @@ import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import type { RestaurantPage, RestaurantLink, Template, ThemeConfig, BusinessHours } from '@/lib/types'
 import { DEFAULT_THEME, LINK_TYPE_CONFIG } from '@/lib/types'
 import { MenuEditor } from '@/components/editor/MenuEditor'
+import { canPublishAnother, upgradeCtaForCap } from '@/lib/plan-limits'
+import type { PlanKey } from '@/lib/stripe'
 import toast from 'react-hot-toast'
 import { QRCodeCanvas } from 'qrcode.react'
 
@@ -211,7 +213,34 @@ export default function EditorPage() {
               <Switch
                 id="published"
                 checked={page.published}
-                onCheckedChange={(published) => update({ published })}
+                onCheckedChange={async (published) => {
+                  if (!published) {
+                    // Always allowed to unpublish
+                    update({ published: false })
+                    return
+                  }
+                  // Going false -> true: check plan cap
+                  const { data: { user } } = await supabase.auth.getUser()
+                  if (!user) return
+                  const [{ data: profile }, { count }] = await Promise.all([
+                    supabase.from('profiles').select('plan').eq('id', user.id).single(),
+                    supabase
+                      .from('pages')
+                      .select('id', { count: 'exact', head: true })
+                      .eq('user_id', user.id)
+                      .eq('published', true)
+                      .neq('id', page.id),
+                  ])
+                  const plan = (profile?.plan || 'free') as PlanKey | 'past_due'
+                  const result = canPublishAnother(plan, count || 0)
+                  if (!result.ok) {
+                    const cta = upgradeCtaForCap(plan)
+                    toast.error(`${cta.title}. ${result.reason}.`, { duration: 6000 })
+                    setTimeout(() => router.push(cta.href), 1500)
+                    return
+                  }
+                  update({ published: true })
+                }}
               />
             </div>
             <Link href={`/analytics/${page.id}`}>
