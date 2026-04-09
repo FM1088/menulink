@@ -6,7 +6,8 @@ import {
 } from 'lucide-react'
 import type { RestaurantPage, RestaurantLink, MenuTree, MenuItem } from '@/lib/types'
 import { DIETARY_FLAGS, formatPrice } from '@/lib/types'
-import { useState } from 'react'
+import { computeOpenStatus } from '@/lib/business-hours'
+import { useState, useEffect } from 'react'
 
 const ICON_MAP: Record<string, any> = {
   menu: UtensilsCrossed,
@@ -23,6 +24,42 @@ function getLinkHref(link: RestaurantLink) {
   if (link.type === 'phone') return `tel:${link.url}`
   if (link.type === 'email') return `mailto:${link.url}`
   return link.url
+}
+
+// ==================== OPEN NOW BADGE ====================
+/**
+ * Live-updating "Open now / Closed" badge.
+ *
+ * Renders nothing on the server (avoids SSR/CSR mismatch from time-of-day).
+ * Mounts client-side, recomputes once per minute. Pure presentational —
+ * no analytics events.
+ */
+function OpenNowBadge({ page }: { page: RestaurantPage }) {
+  const [now, setNow] = useState<Date | null>(null)
+  useEffect(() => {
+    setNow(new Date())
+    const t = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(t)
+  }, [])
+  if (!now) return null
+  if (!page.hours || page.hours.length === 0) return null
+  const status = computeOpenStatus(page.hours, now)
+  if (status.state === 'unknown') return null
+
+  if (status.state === 'open') {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        Open now · until {status.closesAt}
+      </div>
+    )
+  }
+  return (
+    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-300 text-[11px] font-medium">
+      <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+      Closed{status.opensAt ? ` · opens ${status.opensDay} ${status.opensAt}` : ''}
+    </div>
+  )
 }
 
 function trackClick(pageId: string, linkId?: string) {
@@ -444,6 +481,10 @@ function ElegantTemplate({ page }: { page: RestaurantPage }) {
 export function PublicPageClient({ page, menu }: { page: RestaurantPage; menu: MenuTree }) {
   return (
     <>
+      {/* Floating Open Now badge — anchored top-right, theme-agnostic */}
+      <div className="fixed top-4 right-4 z-50">
+        <OpenNowBadge page={page} />
+      </div>
       {(() => {
         switch (page.template) {
           case 'photo-hero':
