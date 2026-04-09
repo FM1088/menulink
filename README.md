@@ -7,11 +7,14 @@ Beautiful bio link pages for restaurants. Like Linktree, but built specifically 
 - **3 Templates**: Minimal, Photo Hero, Elegant -- each designed for different restaurant vibes
 - **8 Link Types**: Menu, Booking, Delivery, Social, Maps, Phone, Email, Custom
 - **Visual Editor**: Live preview, color themes, image uploads, link reordering
-- **QR Code Generator**: Download PNG codes for table tents, menus, and receipts
+- **QR Code Generator**: PNG QR codes for table tents, menus, and receipts
+- **Printable QR Poster (Pro)**: Auto-generated A4 + A5 PDF posters with venue name, scan CTA, full Unicode (Vietnamese, Thai, CJK)
 - **Analytics Dashboard**: Track page views, link clicks, CTR, and 7-day trends
 - **Mobile-First**: Responsive pages optimized for the 90%+ mobile traffic restaurants see
-- **SEO Ready**: Open Graph meta tags, Twitter cards, server-side rendering for public pages
-- **Stripe Billing**: Free tier + Pro subscription with Stripe Checkout and webhook handling
+- **SEO Ready**: Open Graph meta tags, Twitter cards, JSON-LD Product+Offer schema, server-side rendering
+- **Stripe Billing**: Free tier + Pro subscription + customer portal + payment failure handling
+- **Welcome Emails (Resend)**: Branded HTML+text email with poster download links on Pro signup
+- **Bundle with ReviewReply**: +$5/mo bolt-on via cross-product provisioning API
 
 ## Tech Stack
 
@@ -94,8 +97,11 @@ Open [http://localhost:3000](http://localhost:3000) to see the landing page.
 |----------|--------|-------------|
 | `/api/analytics` | POST | Record page view or link click |
 | `/api/analytics` | GET | Fetch analytics summary by day |
+| `/api/poster/[slug]` | GET | Generate + stream QR poster PDF (`?format=a4\|a5`) |
 | `/api/stripe/checkout` | POST | Create Stripe checkout session |
 | `/api/stripe/webhook` | POST | Handle Stripe subscription events |
+| `/api/stripe/portal` | POST | Create Stripe billing portal session |
+| `/api/bundle/provision` | POST | Cross-product bundle activation (called by ReviewReply) |
 
 ## Database Schema
 
@@ -149,6 +155,30 @@ supabase/
   schema.sql         # Database schema
   migrations/        # SQL migrations
 ```
+
+## Tests
+
+```bash
+npm test            # one-shot
+npm run test:watch  # watch mode
+npm run test:coverage
+```
+
+30 tests covering poster generator (Unicode handling), email rendering, Stripe webhook event routing.
+
+## Deployment
+
+Live preview: https://menulink.vercel.app
+
+Setting up your own:
+```bash
+npx vercel link
+npx vercel env add NEXT_PUBLIC_SUPABASE_URL production
+# ... repeat for all vars in .env.example
+npx vercel --prod
+```
+
+See `BLOCKERS.md` for unfinished items requiring out-of-band setup.
 
 ## License
 
