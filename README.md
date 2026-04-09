@@ -168,7 +168,7 @@ npm run test:coverage
 
 ## Deployment
 
-Live preview: https://menulink.vercel.app
+Live preview: https://menulink-zeta.vercel.app
 
 Setting up your own:
 ```bash

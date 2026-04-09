@@ -98,3 +98,26 @@ be unblocked autonomously. Each is sized in time-to-unblock and prioritised.
 **Summary:** B1 + B2 + B3 (~1 hr work) is the entire critical path to first revenue.
 The deployment pipeline, all code, all UI, all tests, and the bundle contract are
 already in place — only credentials are missing.
+
+---
+
+## Update — 2026-04-09 post-benchmark sprint additions
+
+### B12. Stripe Locations Price ID
+- **Status:** New tier shipped, env slot present.
+- **Action:** Create Stripe Product "MenuLink Locations" at $24/mo, set `STRIPE_LOCATIONS_PRICE_ID` in Vercel.
+- **Time:** 5 min after B2
+
+### B13. Stripe trial period configured at the price level (optional)
+- **Status:** `subscription_data.trial_period_days = 14` is hardcoded in checkout route. Works without dashboard config.
+- **Action:** None required unless you want trials configured at the Stripe Product level instead of API call.
+
+### B14. Pro price RAISED from $9 to $14 — existing customers
+- **Status:** `STRIPE_PRO_PRICE_ID` env var still references whatever Stripe price ID is set. Stripe handles version retention — old subscribers keep their old price.
+- **Action:** When creating the new $14 product in Stripe, copy the new Price ID to `STRIPE_PRO_PRICE_ID`. Existing subscribers continue at $9 until manually migrated. Optional: send a "we raised prices but you're grandfathered" email.
+
+### B15. Run new SQL migrations
+- **Status:** Two new migrations added in this sprint:
+  - `supabase/migrations/20260409_menu_items.sql` (sections + items + RLS)
+  - `supabase/migrations/20260409_locations_plan.sql` (plan check constraint)
+- **Action:** Apply after B1, in addition to the original B3 migrations. Order: schema.sql → 20260206_page_analytics → 20260409_past_due → 20260409_bundle_provisioning → 20260409_menu_items → 20260409_locations_plan
