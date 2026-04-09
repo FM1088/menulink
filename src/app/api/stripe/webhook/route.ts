@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import { sendWelcomeEmail } from '@/lib/email'
+import { routeStripeEvent, type RouterOps } from '@/lib/webhook-router'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,110 +37,51 @@ export async function POST(req: NextRequest) {
 
   const supabase = getSupabase()
 
+  const ops: RouterOps = {
+    setPlanByUserId: async (userId, patch) => {
+      await supabase.from('profiles').update(patch).eq('id', userId)
+    },
+    setPlanBySubId: async (subId, patch) => {
+      await supabase
+        .from('profiles')
+        .update(patch)
+        .eq('stripe_subscription_id', subId)
+    },
+    reactivateIfPastDue: async (subId) => {
+      await supabase
+        .from('profiles')
+        .update({ plan: 'pro' })
+        .eq('stripe_subscription_id', subId)
+        .eq('plan', 'past_due')
+    },
+    fetchEmail: async (userId) => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', userId)
+        .maybeSingle()
+      return data?.email ?? null
+    },
+    fetchFirstSlug: async (userId) => {
+      const { data } = await supabase
+        .from('pages')
+        .select('slug')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+      return data?.slug ?? null
+    },
+    sendWelcome: async (email, slug) => {
+      await sendWelcomeEmail({ to: email, slug, appUrl: APP_URL }).catch((e) =>
+        console.error('[stripe webhook] welcome email failed', e),
+      )
+    },
+  }
+
   try {
-    switch (event.type) {
-      // ─── Initial Pro purchase ───────────────────────────────
-      case 'checkout.session.completed': {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const session = event.data.object as any
-        const userId = session.metadata?.userId
-        if (!userId) break
-
-        const { data: updated } = await supabase
-          .from('profiles')
-          .update({
-            plan: 'pro',
-            stripe_subscription_id: session.subscription,
-            stripe_customer_id: session.customer,
-          })
-          .eq('id', userId)
-          .select('email')
-          .single()
-
-        // Fire welcome email — also fetches first published page slug if any
-        if (updated?.email) {
-          const { data: firstPage } = await supabase
-            .from('pages')
-            .select('slug')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: true })
-            .limit(1)
-            .maybeSingle()
-
-          await sendWelcomeEmail({
-            to: updated.email,
-            slug: firstPage?.slug ?? null,
-            appUrl: APP_URL,
-          }).catch((e) =>
-            console.error('[stripe webhook] welcome email failed', e),
-          )
-        }
-        break
-      }
-
-      // ─── Subscription state changed (renewal, plan change, manual edit) ──
-      case 'customer.subscription.updated': {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sub = event.data.object as any
-        const status = sub.status as string
-        const newPlan =
-          status === 'active' || status === 'trialing'
-            ? 'pro'
-            : status === 'past_due' || status === 'unpaid'
-              ? 'past_due'
-              : 'free'
-
-        await supabase
-          .from('profiles')
-          .update({ plan: newPlan })
-          .eq('stripe_subscription_id', sub.id)
-        break
-      }
-
-      // ─── Cancellation ───────────────────────────────────────
-      case 'customer.subscription.deleted': {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sub = event.data.object as any
-        await supabase
-          .from('profiles')
-          .update({ plan: 'free', stripe_subscription_id: null })
-          .eq('stripe_subscription_id', sub.id)
-        break
-      }
-
-      // ─── Payment failed (downgrade to past_due, do not strip access yet) ─
-      case 'invoice.payment_failed': {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const invoice = event.data.object as any
-        const subId = invoice.subscription
-        if (subId) {
-          await supabase
-            .from('profiles')
-            .update({ plan: 'past_due' })
-            .eq('stripe_subscription_id', subId)
-        }
-        break
-      }
-
-      // ─── Payment succeeded after past_due → reactivate ──────
-      case 'invoice.paid': {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const invoice = event.data.object as any
-        const subId = invoice.subscription
-        if (subId) {
-          await supabase
-            .from('profiles')
-            .update({ plan: 'pro' })
-            .eq('stripe_subscription_id', subId)
-            .eq('plan', 'past_due')
-        }
-        break
-      }
-
-      default:
-        // Unhandled event types are intentional no-ops
-        break
-    }
+    const result = await routeStripeEvent(event, ops)
+    console.log(`[stripe webhook] ${event.type} → ${result}`)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error('[stripe webhook] handler error', err)
