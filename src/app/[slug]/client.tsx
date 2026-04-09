@@ -4,7 +4,8 @@ import {
   UtensilsCrossed, CalendarCheck, Truck, Share2, MapPin,
   Phone, Mail, ExternalLink, Clock, Instagram, Facebook, Music2, ChevronDown
 } from 'lucide-react'
-import type { RestaurantPage, RestaurantLink } from '@/lib/types'
+import type { RestaurantPage, RestaurantLink, MenuTree, MenuItem } from '@/lib/types'
+import { DIETARY_FLAGS, formatPrice } from '@/lib/types'
 import { useState } from 'react'
 
 const ICON_MAP: Record<string, any> = {
@@ -30,6 +31,121 @@ function trackClick(pageId: string, linkId?: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ pageId, type: 'click', linkId }),
   }).catch(() => {})
+}
+
+// ==================== MENU DISPLAY ====================
+/**
+ * Renders the structured menu (sections + items + prices + dietary tags)
+ * inline on the public restaurant page. Theme-color aware.
+ *
+ * Hidden entirely if there are no items and no sections — pages without
+ * a structured menu still show the link grid as before.
+ */
+function MenuDisplay({ menu, theme }: { menu: MenuTree; theme: { primaryColor: string; textColor: string } }) {
+  const totalItems =
+    menu.uncategorised.length +
+    Object.values(menu.itemsBySection).reduce((s, arr) => s + arr.length, 0)
+  if (totalItems === 0) return null
+
+  return (
+    <div className="w-full max-w-md mx-auto mt-8 space-y-6">
+      <div className="text-center">
+        <h2 className="text-xs uppercase tracking-widest opacity-60">Menu</h2>
+      </div>
+
+      {menu.sections.map((section) => {
+        const items = menu.itemsBySection[section.id] || []
+        if (items.length === 0) return null
+        return (
+          <div key={section.id} className="space-y-3">
+            <div>
+              <h3
+                className="text-lg font-bold"
+                style={{ color: theme.primaryColor }}
+              >
+                {section.name}
+              </h3>
+              {section.description && (
+                <p className="text-xs opacity-60 mt-0.5">{section.description}</p>
+              )}
+            </div>
+            <div className="space-y-3">
+              {items.map((item) => (
+                <MenuItemRow key={item.id} item={item} primaryColor={theme.primaryColor} />
+              ))}
+            </div>
+          </div>
+        )
+      })}
+
+      {menu.uncategorised.length > 0 && (
+        <div className="space-y-3">
+          {menu.sections.length > 0 && (
+            <h3
+              className="text-lg font-bold"
+              style={{ color: theme.primaryColor }}
+            >
+              More
+            </h3>
+          )}
+          <div className="space-y-3">
+            {menu.uncategorised.map((item) => (
+              <MenuItemRow key={item.id} item={item} primaryColor={theme.primaryColor} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function MenuItemRow({ item, primaryColor }: { item: MenuItem; primaryColor: string }) {
+  return (
+    <div className="flex gap-3 py-2 border-b border-current/10">
+      {item.photo_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.photo_url}
+          alt=""
+          className="w-16 h-16 rounded-lg object-cover shrink-0"
+        />
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between gap-2">
+          <h4 className="font-semibold text-sm truncate">{item.name}</h4>
+          {item.price_cents !== null && (
+            <span className="text-sm font-mono shrink-0" style={{ color: primaryColor }}>
+              {formatPrice(item.price_cents, item.currency)}
+            </span>
+          )}
+        </div>
+        {item.description && (
+          <p className="text-xs opacity-70 mt-0.5 leading-snug">{item.description}</p>
+        )}
+        {(item.dietary.length > 0 || item.allergens.length > 0) && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {item.dietary.map((d) => {
+              const cfg = DIETARY_FLAGS.find((f) => f.value === d)
+              return (
+                <span
+                  key={d}
+                  className="text-[10px] px-1.5 py-0.5 rounded border border-current/20 opacity-80"
+                  title={cfg?.label}
+                >
+                  {cfg?.emoji} {cfg?.label}
+                </span>
+              )
+            })}
+            {item.allergens.length > 0 && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded border border-red-500/30 text-red-400 opacity-80">
+                contains {item.allergens.join(', ')}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ==================== MINIMAL TEMPLATE ====================
@@ -325,13 +441,25 @@ function ElegantTemplate({ page }: { page: RestaurantPage }) {
 }
 
 // ==================== PUBLIC PAGE CLIENT ====================
-export function PublicPageClient({ page }: { page: RestaurantPage }) {
-  switch (page.template) {
-    case 'photo-hero':
-      return <PhotoHeroTemplate page={page} />
-    case 'elegant':
-      return <ElegantTemplate page={page} />
-    default:
-      return <MinimalTemplate page={page} />
-  }
+export function PublicPageClient({ page, menu }: { page: RestaurantPage; menu: MenuTree }) {
+  return (
+    <>
+      {(() => {
+        switch (page.template) {
+          case 'photo-hero':
+            return <PhotoHeroTemplate page={page} />
+          case 'elegant':
+            return <ElegantTemplate page={page} />
+          default:
+            return <MinimalTemplate page={page} />
+        }
+      })()}
+      <div
+        className="px-4 pb-12"
+        style={{ backgroundColor: page.theme.backgroundColor, color: page.theme.textColor }}
+      >
+        <MenuDisplay menu={menu} theme={page.theme} />
+      </div>
+    </>
+  )
 }

@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { getSupabaseBrowser } from '@/lib/supabase-browser'
 import type { RestaurantPage, RestaurantLink, Template, ThemeConfig, BusinessHours } from '@/lib/types'
 import { DEFAULT_THEME, LINK_TYPE_CONFIG } from '@/lib/types'
+import { MenuEditor } from '@/components/editor/MenuEditor'
 import toast from 'react-hot-toast'
 import { QRCodeCanvas } from 'qrcode.react'
 
@@ -250,13 +251,19 @@ export default function EditorPage() {
           {/* Editor Panel */}
           <div className="space-y-6">
             <Tabs defaultValue="basics" className="w-full">
-              <TabsList className="bg-white/5 border border-white/10 w-full justify-start">
+              <TabsList className="bg-white/5 border border-white/10 w-full justify-start overflow-x-auto">
                 <TabsTrigger value="basics">Basics</TabsTrigger>
+                <TabsTrigger value="menu">Menu</TabsTrigger>
                 <TabsTrigger value="links">Links</TabsTrigger>
                 <TabsTrigger value="hours">Hours</TabsTrigger>
                 <TabsTrigger value="photos">Photos</TabsTrigger>
                 <TabsTrigger value="theme">Theme</TabsTrigger>
               </TabsList>
+
+              {/* Menu Tab — structured items */}
+              <TabsContent value="menu" className="space-y-4 mt-4">
+                <MenuEditor pageId={page.id} />
+              </TabsContent>
 
               {/* Basics Tab */}
               <TabsContent value="basics" className="space-y-4 mt-4">

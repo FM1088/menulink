@@ -2,7 +2,8 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { PublicPageClient } from './client'
-import type { RestaurantPage } from '@/lib/types'
+import type { RestaurantPage, MenuSection, MenuItem } from '@/lib/types'
+import { buildMenuTree } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,27 @@ async function getPage(slug: string): Promise<RestaurantPage | null> {
     .eq('published', true)
     .single()
   return data as RestaurantPage | null
+}
+
+async function getMenu(pageId: string) {
+  const supabase = getSupabase()
+  const [{ data: sec }, { data: items }] = await Promise.all([
+    supabase
+      .from('menu_sections')
+      .select('*')
+      .eq('page_id', pageId)
+      .order('sort_order'),
+    supabase
+      .from('menu_items')
+      .select('*')
+      .eq('page_id', pageId)
+      .eq('available', true)
+      .order('sort_order'),
+  ])
+  return buildMenuTree(
+    (sec as MenuSection[]) || [],
+    (items as MenuItem[]) || [],
+  )
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -48,6 +70,8 @@ export default async function SlugPage({ params }: { params: { slug: string } })
   const page = await getPage(params.slug)
   if (!page) notFound()
 
+  const menu = await getMenu(page.id)
+
   // Record page view via the RPC function (which updates both analytics table and aggregate counter)
   const supabase = getSupabase()
   await supabase.rpc('record_analytics', {
@@ -58,5 +82,5 @@ export default async function SlugPage({ params }: { params: { slug: string } })
     p_user_agent: null
   })
 
-  return <PublicPageClient page={page} />
+  return <PublicPageClient page={page} menu={menu} />
 }
