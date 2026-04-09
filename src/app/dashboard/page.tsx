@@ -21,7 +21,10 @@ import toast from 'react-hot-toast'
 export default function DashboardPage() {
   const [pages, setPages] = useState<RestaurantPage[]>([])
   const [loading, setLoading] = useState(true)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null)
+  const [plan, setPlan] = useState<'free' | 'pro' | 'past_due'>('free')
+  const [portalLoading, setPortalLoading] = useState(false)
   const router = useRouter()
   const supabase = getSupabaseBrowser()
 
@@ -31,17 +34,48 @@ export default function DashboardPage() {
       if (!user) { router.push('/auth'); return }
       setUser(user)
 
-      const { data } = await supabase
-        .from('pages')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-      
-      setPages(data || [])
+      const [{ data: pageData }, { data: profile }] = await Promise.all([
+        supabase
+          .from('pages')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', user.id)
+          .single(),
+      ])
+
+      setPages(pageData || [])
+      if (profile?.plan) setPlan(profile.plan)
       setLoading(false)
     }
     init()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const openBillingPortal = async () => {
+    if (!user) return
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      })
+      const json = await res.json()
+      if (json.url) {
+        window.location.href = json.url
+      } else {
+        toast.error(json.error || 'Failed to open billing portal')
+      }
+    } catch {
+      toast.error('Failed to open billing portal')
+    } finally {
+      setPortalLoading(false)
+    }
+  }
 
   const createNewPage = async () => {
     if (!user) return
@@ -106,9 +140,22 @@ export default function DashboardPage() {
             <span className="font-bold">MenuLink<span className="text-orange-400">.page</span></span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/pricing">
-              <Button variant="ghost" size="sm">Upgrade</Button>
-            </Link>
+            {plan === 'pro' || plan === 'past_due' ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={openBillingPortal}
+                disabled={portalLoading}
+                title="Manage billing & subscription"
+              >
+                <CreditCard className="w-4 h-4 mr-1" />
+                {portalLoading ? '…' : 'Billing'}
+              </Button>
+            ) : (
+              <Link href="/pricing">
+                <Button variant="ghost" size="sm">Upgrade</Button>
+              </Link>
+            )}
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="w-4 h-4" />
             </Button>
@@ -117,6 +164,25 @@ export default function DashboardPage() {
       </nav>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {plan === 'past_due' && (
+          <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="font-semibold text-red-300">Payment failed</p>
+              <p className="text-sm text-red-200/80">
+                Your last payment didn&apos;t go through. Update your card to keep Pro features active.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={openBillingPortal}
+              disabled={portalLoading}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              {portalLoading ? 'Opening…' : 'Update Payment'}
+            </Button>
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

@@ -58,10 +58,12 @@ export interface ThemeConfig {
   fontFamily: string
 }
 
+export type UserPlan = 'free' | 'pro' | 'past_due'
+
 export interface UserProfile {
   id: string
   email: string
-  plan: 'free' | 'pro'
+  plan: UserPlan
   stripe_customer_id?: string
   stripe_subscription_id?: string
   created_at: string
