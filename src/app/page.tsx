@@ -117,11 +117,11 @@ export default function LandingPage() {
                 <Zap className="w-3 h-3" /> Built for restaurants
               </div>
               <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                Your restaurant&apos;s
-                <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent"> perfect link page</span>
+                One link for your
+                <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent"> whole restaurant</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-lg">
-                One beautiful page with all your links — menu, bookings, delivery, social media, directions, and more. Set it up in 2 minutes.
+                Menu, bookings, reviews, delivery apps, socials — in one QR code on every table. Built for restaurants, not influencers.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link href="/auth">
@@ -155,6 +155,72 @@ export default function LandingPage() {
               </div>
             ))}
             <span className="text-sm text-muted-foreground">+ Delivery, Email, Custom & more</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Curateria social proof band */}
+      <section className="py-10 border-b border-white/5">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
+            Trusted by restaurants on
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Star className="w-5 h-5 text-orange-400" />
+            <span className="text-lg font-semibold">
+              Featured on{' '}
+              <a
+                href="https://curateria.com.au"
+                target="_blank"
+                rel="noopener"
+                className="text-orange-400 hover:underline"
+              >
+                Curateria
+              </a>
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Australia&apos;s curated restaurant discovery platform
+          </p>
+        </div>
+      </section>
+
+      {/* How it works — 3 steps */}
+      <section className="py-24 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Live in 3 steps</h2>
+            <p className="text-muted-foreground">No web designer required.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Sign up free',
+                desc: 'Create your account in 30 seconds. No credit card needed.',
+              },
+              {
+                step: '02',
+                title: 'Add your links',
+                desc: 'Menu PDF, Instagram, OpenTable, UberEats, Google Maps — drag, drop, done.',
+              },
+              {
+                step: '03',
+                title: 'Print your QR poster',
+                desc: 'Download the auto-generated A4 poster. Stick it on every table.',
+              },
+            ].map((s) => (
+              <div
+                key={s.step}
+                className="relative p-6 rounded-xl bg-white/[0.02] border border-white/10 hover:border-orange-500/30 transition"
+              >
+                <div className="text-5xl font-bold text-orange-400/20 mb-2">
+                  {s.step}
+                </div>
+                <h3 className="font-semibold mb-2 text-lg">{s.title}</h3>
+                <p className="text-sm text-muted-foreground">{s.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -205,18 +271,18 @@ export default function LandingPage() {
 
       {/* Pricing */}
       <section id="pricing" className="py-24 px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Simple Pricing</h2>
-            <p className="text-muted-foreground">Start free, upgrade when you need more.</p>
+            <p className="text-muted-foreground">Start free, upgrade when you need more. Save by bundling with ReviewReply.</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {/* Free */}
-            <Card className="p-8 bg-white/[0.02] border-white/10">
+            <Card className="p-8 bg-white/[0.02] border-white/10 flex flex-col">
               <h3 className="text-xl font-bold mb-1">Free</h3>
               <div className="text-3xl font-bold mb-4">$0<span className="text-sm font-normal text-muted-foreground">/month</span></div>
-              <ul className="space-y-3 mb-8">
-                {['1 page', 'Minimal template', 'All link types', 'QR code'].map((f) => (
+              <ul className="space-y-3 mb-8 flex-1">
+                {['1 page', 'Minimal template', 'All 8 link types', 'PNG QR code', 'Basic SEO'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-green-400" />{f}</li>
                 ))}
               </ul>
@@ -225,19 +291,39 @@ export default function LandingPage() {
               </Link>
             </Card>
             {/* Pro */}
-            <Card className="p-8 bg-gradient-to-b from-orange-500/10 to-transparent border-orange-500/30 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-orange-500 text-xs font-semibold rounded-full">POPULAR</div>
+            <Card className="p-8 bg-gradient-to-b from-orange-500/15 to-transparent border-orange-500/40 relative flex flex-col shadow-lg shadow-orange-500/10">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-orange-500 text-xs font-semibold rounded-full whitespace-nowrap">MOST POPULAR</div>
               <h3 className="text-xl font-bold mb-1">Pro</h3>
               <div className="text-3xl font-bold mb-4">$9<span className="text-sm font-normal text-muted-foreground">/month</span></div>
-              <ul className="space-y-3 mb-8">
-                {['Unlimited pages', 'All 3 templates', 'Analytics dashboard', 'Custom domain', 'Priority support', 'QR codes'].map((f) => (
+              <ul className="space-y-3 mb-8 flex-1">
+                {['Unlimited pages', 'All 3 templates', 'Analytics dashboard', 'Custom domain', 'QR poster PDF (A4+A5)', 'No MenuLink branding'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-orange-400" />{f}</li>
                 ))}
               </ul>
               <Link href="/auth">
-                <Button className="w-full bg-orange-500 hover:bg-orange-600">Start Pro Trial</Button>
+                <Button className="w-full bg-orange-500 hover:bg-orange-600">Start Pro</Button>
               </Link>
             </Card>
+            {/* Bundle */}
+            <Card className="p-8 bg-white/[0.02] border-white/10 relative flex flex-col">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-xs font-semibold rounded-full whitespace-nowrap">BEST VALUE</div>
+              <h3 className="text-xl font-bold mb-1">Bundle</h3>
+              <div className="text-3xl font-bold mb-1">+$5<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+              <p className="text-xs text-muted-foreground mb-4">Add to ReviewReply</p>
+              <ul className="space-y-3 mb-8 flex-1">
+                {['Everything in Pro', 'Bundled with ReviewReply', 'One login, one bill', 'Save $4/mo vs Pro alone'].map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-emerald-400" />{f}</li>
+                ))}
+              </ul>
+              <Link href="/pricing">
+                <Button variant="outline" className="w-full border-white/10">See Details</Button>
+              </Link>
+            </Card>
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/pricing" className="text-sm text-orange-400 hover:underline">
+              Full pricing comparison & FAQ →
+            </Link>
           </div>
         </div>
       </section>

@@ -6,13 +6,51 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://menulink.page'
+
 export const metadata: Metadata = {
-  title: 'MenuLink.page — Beautiful Bio Pages for Restaurants',
-  description: 'Create stunning link-in-bio pages for your restaurant. Share your menu, booking links, social media, and more — all in one beautiful page.',
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: 'MenuLink.page — One link for your whole restaurant',
+    template: '%s | MenuLink.page',
+  },
+  description:
+    'Menu, bookings, reviews, delivery apps, socials — in one QR code on every table. Built for restaurants, not influencers. Free forever for 1 page.',
+  keywords: [
+    'restaurant link in bio',
+    'menu QR code',
+    'restaurant linktree',
+    'restaurant bio page',
+    'menu bio link',
+    'restaurant marketing',
+    'QR menu',
+  ],
+  authors: [{ name: 'MenuLink.page' }],
+  creator: 'MenuLink.page',
   openGraph: {
-    title: 'MenuLink.page — Beautiful Bio Pages for Restaurants',
-    description: 'Create stunning link-in-bio pages for your restaurant in 2 minutes.',
     type: 'website',
+    locale: 'en_AU',
+    url: APP_URL,
+    siteName: 'MenuLink.page',
+    title: 'MenuLink.page — One link for your whole restaurant',
+    description:
+      'Menu, bookings, reviews, delivery apps, socials — all in one QR code. Built for restaurants. Free forever.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MenuLink.page — One link for your whole restaurant',
+    description:
+      'Menu, bookings, reviews, delivery apps, socials — all in one QR code. Free forever.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 }
 
