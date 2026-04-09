@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   UtensilsCrossed, Plus, ExternalLink, Eye, MousePointer,
-  MoreVertical, Trash2, Copy, QrCode, LogOut, Settings, BarChart3
+  MoreVertical, Trash2, Copy, QrCode, LogOut, Settings, BarChart3,
+  FileDown, CreditCard
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -169,6 +170,28 @@ export default function DashboardPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => router.push(`/analytics/${page.id}`)}>
                           <BarChart3 className="w-4 h-4 mr-2" /> Analytics
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            if (!page.published) {
+                              toast.error('Publish the page first')
+                              return
+                            }
+                            window.open(`/api/poster/${page.slug}?format=a4`, '_blank')
+                          }}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" /> Poster (A4)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            if (!page.published) {
+                              toast.error('Publish the page first')
+                              return
+                            }
+                            window.open(`/api/poster/${page.slug}?format=a5`, '_blank')
+                          }}
+                        >
+                          <FileDown className="w-4 h-4 mr-2" /> Poster (A5)
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => deletePage(page.id)} className="text-red-400">
                           <Trash2 className="w-4 h-4 mr-2" /> Delete

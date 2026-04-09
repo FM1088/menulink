@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import {
-  UtensilsCrossed, ArrowLeft, Save, Eye, QrCode, Share2,
+  UtensilsCrossed, ArrowLeft, Save, Eye, QrCode, Share2, FileDown,
   Plus, Trash2, GripVertical, Upload, Clock, Image as ImageIcon,
   Palette, ExternalLink, Phone, Mail, MapPin, CalendarCheck,
   Truck, Link2, ChevronDown, ChevronUp, Globe, BarChart3, Download
@@ -220,6 +220,20 @@ export default function EditorPage() {
             </Link>
             <Button variant="ghost" size="sm" onClick={() => setShowQr(true)} title="QR Code">
               <QrCode className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (!page.published) {
+                  toast.error('Publish the page first to download a poster')
+                  return
+                }
+                window.open(`/api/poster/${page.slug}?format=a4`, '_blank')
+              }}
+              title="Download poster PDF (A4)"
+            >
+              <FileDown className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="sm" onClick={() => window.open(`/${page.slug}`, '_blank')} title="Preview">
               <Eye className="w-4 h-4" />
