@@ -273,45 +273,48 @@ export default function LandingPage() {
       <section id="pricing" className="py-24 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Simple Pricing</h2>
-            <p className="text-muted-foreground">Start free, upgrade when you need more. Save by bundling with ReviewReply.</p>
+            <h2 className="text-3xl font-bold mb-4">14-day free trial. No card tricks.</h2>
+            <p className="text-muted-foreground">Pro for one venue. Locations for groups. Bundle with ReviewReply for the full stack.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {/* Free */}
-            <Card className="p-8 bg-white/[0.02] border-white/10 flex flex-col">
-              <h3 className="text-xl font-bold mb-1">Free</h3>
-              <div className="text-3xl font-bold mb-4">$0<span className="text-sm font-normal text-muted-foreground">/month</span></div>
-              <ul className="space-y-3 mb-8 flex-1">
-                {['1 page', 'Minimal template', 'All 8 link types', 'PNG QR code', 'Basic SEO'].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-green-400" />{f}</li>
-                ))}
-              </ul>
-              <Link href="/auth">
-                <Button variant="outline" className="w-full border-white/10">Get Started</Button>
-              </Link>
-            </Card>
             {/* Pro */}
             <Card className="p-8 bg-gradient-to-b from-orange-500/15 to-transparent border-orange-500/40 relative flex flex-col shadow-lg shadow-orange-500/10">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-orange-500 text-xs font-semibold rounded-full whitespace-nowrap">MOST POPULAR</div>
               <h3 className="text-xl font-bold mb-1">Pro</h3>
-              <div className="text-3xl font-bold mb-4">$9<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+              <p className="text-xs text-muted-foreground mb-3">Single venue</p>
+              <div className="text-3xl font-bold mb-4">$14<span className="text-sm font-normal text-muted-foreground">/month</span></div>
               <ul className="space-y-3 mb-8 flex-1">
-                {['Unlimited pages', 'All 3 templates', 'Analytics dashboard', 'Custom domain', 'QR poster PDF (A4+A5)', 'No MenuLink branding'].map((f) => (
+                {['Structured menu (prices, allergens)', 'All 3 templates', 'Custom domain', 'QR poster PDF', 'Featured on Curateria', '14-day free trial'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-orange-400" />{f}</li>
                 ))}
               </ul>
-              <Link href="/auth">
-                <Button className="w-full bg-orange-500 hover:bg-orange-600">Start Pro</Button>
+              <Link href="/auth?plan=pro">
+                <Button className="w-full bg-orange-500 hover:bg-orange-600">Start Free Trial</Button>
+              </Link>
+            </Card>
+            {/* Locations */}
+            <Card className="p-8 bg-white/[0.02] border-white/10 relative flex flex-col">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-blue-500 text-xs font-semibold rounded-full whitespace-nowrap text-white">FOR GROUPS</div>
+              <h3 className="text-xl font-bold mb-1">Locations</h3>
+              <p className="text-xs text-muted-foreground mb-3">2-5 venues</p>
+              <div className="text-3xl font-bold mb-4">$24<span className="text-sm font-normal text-muted-foreground">/month</span></div>
+              <ul className="space-y-3 mb-8 flex-1">
+                {['Up to 5 published pages', 'Everything in Pro', 'Per-location menus', 'Multi-location dashboard', 'No per-location markup', '14-day free trial'].map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-blue-400" />{f}</li>
+                ))}
+              </ul>
+              <Link href="/auth?plan=locations">
+                <Button variant="outline" className="w-full border-white/10">Start Free Trial</Button>
               </Link>
             </Card>
             {/* Bundle */}
             <Card className="p-8 bg-white/[0.02] border-white/10 relative flex flex-col">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-xs font-semibold rounded-full whitespace-nowrap">BEST VALUE</div>
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-xs font-semibold rounded-full whitespace-nowrap text-white">BEST VALUE</div>
               <h3 className="text-xl font-bold mb-1">Bundle</h3>
-              <div className="text-3xl font-bold mb-1">+$5<span className="text-sm font-normal text-muted-foreground">/month</span></div>
-              <p className="text-xs text-muted-foreground mb-4">Add to ReviewReply</p>
+              <p className="text-xs text-muted-foreground mb-3">With ReviewReply</p>
+              <div className="text-3xl font-bold mb-4">+$9<span className="text-sm font-normal text-muted-foreground">/month</span></div>
               <ul className="space-y-3 mb-8 flex-1">
-                {['Everything in Pro', 'Bundled with ReviewReply', 'One login, one bill', 'Save $4/mo vs Pro alone'].map((f) => (
+                {['Everything in Pro', 'Bundled with ReviewReply', 'Direct customers + reputation', 'One login, one bill', 'Save $5/mo vs Pro standalone'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm"><Check className="w-4 h-4 text-emerald-400" />{f}</li>
                 ))}
               </ul>
@@ -322,7 +325,7 @@ export default function LandingPage() {
           </div>
           <div className="text-center mt-8">
             <Link href="/pricing" className="text-sm text-orange-400 hover:underline">
-              Full pricing comparison & FAQ →
+              Full comparison vs Linktree, Popmenu, MustHaveMenus →
             </Link>
           </div>
         </div>
